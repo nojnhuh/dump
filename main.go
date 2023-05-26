@@ -3,26 +3,23 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 )
 
-func word_json(lorem string) {
-	// input is a lot of words
-	// count how much each word appears
-	// output that in JSON
-	// [{ "the": 500 }, ...]
+func print_frequency_map(frequency_map map[int][]string) {
+	for key, element := range frequency_map {
+		fmt.Println(key)
+		for _, word := range element {
+			fmt.Println(word)
+		}
+	}
+}
 
+func word_json(lorem string) {
 	// url := "loripsum.net/api"
-	//
-	// resp, err := http.Get(url)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	lines := strings.Split(lorem, "\n")
-
-	// fmt.Println(lines)
-	// fmt.Println(len(lines))
 
 	counts := map[string]int{}
 
@@ -35,18 +32,39 @@ func word_json(lorem string) {
 
 	var s []string
 
-	little_map := map[string]int{}
+	frequency_map := map[int][]string{}
+
+	frequencies := map[int]bool{}
 
 	for key, element := range counts {
-		little_map = map[string]int{}
-		little_map[key] = element
-		j, err := json.Marshal(little_map)
-		if err != nil {
-			panic(err)
-		}
-		s = append(s, string(j)+", ")
+		frequency_map[element] = append(frequency_map[element], key)
+		frequencies[element] = true
 	}
-	s[len(s)-1] = s[len(s)-1][:len(s[len(s)-1])-2]
+
+	frequency_array := make([]int, 0, len(frequencies))
+
+	for key := range frequencies {
+		frequency_array = append(frequency_array, key)
+	}
+
+	sort.Slice(frequency_array, func(p, q int) bool { // sorts by value in array, ascending to descending
+		return frequency_array[p] > frequency_array[q]
+	})
+
+	little_map := map[string]int{}
+
+	for _, key := range frequency_array {
+		for _, element := range frequency_map[key] {
+			little_map[element] = key
+			j, err := json.Marshal(little_map)
+			if err != nil {
+				panic(err)
+			}
+			delete(little_map, element)
+			s = append(s, string(j)+",")
+		}
+	}
+	s[len(s)-1] = s[len(s)-1][:len(s[len(s)-1])-1]
 	fmt.Println(s)
 }
 
