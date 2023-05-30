@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 )
@@ -16,21 +18,43 @@ func print_frequency_map(frequency_map map[int][]string) {
 	}
 }
 
-func word_json(lorem string) {
+type WordCount struct {
+	Word  string `json:"Word"`
+	Count int    `json:"Count"`
+}
+
+func word_json(lorem io.Reader) string {
 	// url := "loripsum.net/api"
 
-	lines := strings.Split(lorem, "\n")
+	newScanner := bufio.NewScanner(lorem)
+
+	newScanner.Split(bufio.ScanWords)
 
 	counts := map[string]int{}
 
-	for _, line := range lines {
-		words := strings.Split(line, " ")
-		for _, word := range words {
-			counts[word]++
-		}
+	for newScanner.Scan() {
+		counts[newScanner.Text()]++
 	}
 
-	var s []string
+	var wordCountArray []WordCount
+	for key, value := range counts {
+		wordCountArray = append(wordCountArray, WordCount{key, value})
+	}
+
+	sort.Slice(wordCountArray, func(p, q int) bool {
+		if wordCountArray[p].Count != wordCountArray[q].Count {
+			return wordCountArray[p].Count > wordCountArray[q].Count
+		}
+		return wordCountArray[p].Word > wordCountArray[q].Word
+	})
+
+	j, err := json.Marshal(wordCountArray)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+
+	/*var s []string
 
 	frequency_map := map[int][]string{}
 
@@ -54,6 +78,8 @@ func word_json(lorem string) {
 	little_map := map[string]int{}
 
 	for _, key := range frequency_array {
+		fmt.Println("zoom")
+		fmt.Println(frequency_array[key])
 		for _, element := range frequency_map[key] {
 			little_map[element] = key
 			j, err := json.Marshal(little_map)
@@ -65,7 +91,7 @@ func word_json(lorem string) {
 		}
 	}
 	s[len(s)-1] = s[len(s)-1][:len(s[len(s)-1])-1]
-	fmt.Println(s)
+	return s*/
 }
 
 func main() {
@@ -74,5 +100,7 @@ func main() {
 <p>Duo Reges: constructio interrete. Quid ergo aliud intellegetur nisi uti ne quae pars naturae neglegatur? At Zeno eum non beatum modo, sed etiam divitem dicere ausus est. Si longus, levis; Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Hoc est non modo cor non habere, sed ne palatum quidem. Quid, si etiam iucunda memoria est praeteritorum malorum? </p>
 
 <p>Id enim volumus, id contendimus, ut officii fructus sit ipsum officium. Quo modo? Expressa vero in iis aetatibus, quae iam confirmatae sunt. Quodsi vultum tibi, si incessum fingeres, quo gravior viderere, non esses tui similis; Esse enim, nisi eris, non potes. </p>`
-	word_json(lorem)
+	myReader := strings.NewReader(lorem)
+	s := word_json(myReader)
+	fmt.Println(s)
 }
