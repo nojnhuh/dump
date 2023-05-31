@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"sort"
 	"strings"
 )
@@ -95,6 +96,12 @@ func word_json(lorem io.Reader) string {
 }
 
 func main() {
+
+	http.HandleFunc("/", indexPage)
+	http.ListenAndServe(":8000", nil)
+}
+
+func indexPage(w http.ResponseWriter, r *http.Request) {
 	lorem := `<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Qui potest igitur habitare in beata vita summi mali metus? Praeclare Laelius, et recte sofñw, illudque vere: O Publi, o gurges, Galloni! es homo miser, inquit. Nam si propter voluptatem, quae est ista laus, quae possit e macello peti? Quae diligentissime contra Aristonem dicuntur a Chryippo. In quibus doctissimi illi veteres inesse quiddam caeleste et divinum putaverunt. Bork Quaeque de virtutibus dicta sunt, quem ad modum eae semper voluptatibus inhaererent, eadem de amicitia dicenda sunt. Summus dolor plures dies manere non potest? </p>
 
 <p>Duo Reges: constructio interrete. Quid ergo aliud intellegetur nisi uti ne quae pars naturae neglegatur? At Zeno eum non beatum modo, sed etiam divitem dicere ausus est. Si longus, levis; Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Hoc est non modo cor non habere, sed ne palatum quidem. Quid, si etiam iucunda memoria est praeteritorum malorum? </p>
@@ -102,5 +109,5 @@ func main() {
 <p>Id enim volumus, id contendimus, ut officii fructus sit ipsum officium. Quo modo? Expressa vero in iis aetatibus, quae iam confirmatae sunt. Quodsi vultum tibi, si incessum fingeres, quo gravior viderere, non esses tui similis; Esse enim, nisi eris, non potes. </p>`
 	myReader := strings.NewReader(lorem)
 	s := word_json(myReader)
-	fmt.Println(s)
+	fmt.Fprintf(w, s)
 }
