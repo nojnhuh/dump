@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -37,8 +38,19 @@ func postRequest(toRead string) {
 }
 
 func main() {
-	postRequest("Rock Attack")
-	getRequest()
+
+	requestPtr := flag.String("requestName", "get", "a request type")
+
+	bodyPtr := flag.String("body", "Rock Soup", "the post request body") // as a note, you may need to add quotes around the text you pass in here
+
+	flag.Parse()
+
+	if *requestPtr == "get" {
+		getRequest()
+	}
+	if *requestPtr == "post" {
+		postRequest(*bodyPtr)
+	}
 
 	//resp, err := http.Post("http://example.com/upload", "image/jpeg", &buf)
 }
